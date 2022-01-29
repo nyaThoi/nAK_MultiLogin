@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Web;
 using System.Windows.Forms;
@@ -73,7 +74,7 @@ namespace nAK_MC
             await LoadPageAsync(browser, _lpa);
             var js = browser.CanExecuteJavascriptInMainFrame;
 
-            if(js)
+            if (js)
             {
                 //edit-id
                 await browser.EvaluateScriptAsync($"document.getElementById('edit-id').value = '{username}';");
@@ -81,7 +82,7 @@ namespace nAK_MC
                 await browser.EvaluateScriptAsync($"document.getElementById('edit-pass').value = '{password}';");
                 //account_login_submit
                 await browser.EvaluateScriptAsync("document.getElementById('account_login_submit').click();");
-                
+
                 await Task.Delay(delay);
                 while (browser.IsLoading)
                     await Task.Delay(delay);
@@ -123,7 +124,7 @@ namespace nAK_MC
             string[] subs = AC_Manager.GetItemText(AC_Manager.SelectedItem).Split(',');
             if (subs[0] != string.Empty)
             {
-                Login(subs[2], @subs[3], subs[0], subs[1]);
+                Task.Run(() => Login(subs[2], @subs[3], subs[0], subs[1]));
             }
         }
         private void save_btn_Click(object sender, EventArgs e)
@@ -191,9 +192,10 @@ namespace nAK_MC
         {
             foreach (var item in Config.mCUsers)
             {
-                Login(item.Server, @item.Path, item.Username, item.Password);
-                Task.Delay(15000);
+                Task.Run(() => Login(item.Server, @item.Path, item.Username, item.Password));
+                Thread.Sleep(15000);
             }
         }
+
     }
 }
