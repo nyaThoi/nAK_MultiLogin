@@ -1,4 +1,4 @@
-# **nAK_MultiLogin**
+# **nAK_MultiLogin / nAK_Bypass Launcher**
 Multilogin for Aura Kingdom OS Clients
 
 **nAK_ML Feature:**
