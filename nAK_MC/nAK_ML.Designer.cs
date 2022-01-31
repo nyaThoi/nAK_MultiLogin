@@ -150,7 +150,7 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoValidate = System.Windows.Forms.AutoValidate.EnableAllowFocusChange;
             this.BackColor = System.Drawing.SystemColors.ActiveCaption;
-            this.ClientSize = new System.Drawing.Size(590, 434);
+            this.ClientSize = new System.Drawing.Size(588, 425);
             this.Controls.Add(this.button2);
             this.Controls.Add(this.save_btn);
             this.Controls.Add(this.path_tB);
@@ -160,8 +160,8 @@
             this.Controls.Add(this.sr_cB);
             this.Controls.Add(this.rmv_btn);
             this.Controls.Add(this.add_btn);
-            this.Controls.Add(this.AC_Manager);
             this.Controls.Add(this.start_btn);
+            this.Controls.Add(this.AC_Manager);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedDialog;
             this.MaximizeBox = false;
             this.MinimizeBox = false;

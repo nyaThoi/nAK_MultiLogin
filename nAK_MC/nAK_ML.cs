@@ -1,6 +1,4 @@
-﻿using CefSharp;
-using CefSharp.WinForms;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -22,109 +20,20 @@ namespace nAK_MC
         public nAK_MC()
         {
             InitializeComponent();
-            browser = new ChromiumWebBrowser(URL.US_URL);
-            Controls.Add(browser);
         }
-
-        private ChromiumWebBrowser browser;
         private void Form1_Load(object sender, EventArgs e)
         {
-            browser.Hide();
             Config._load();
         }
         private void Form1_FormClosing(object sender, FormClosingEventArgs e)
         {
-            Cef.Shutdown();
-        }
-        private Task LoadPageAsync(IWebBrowser browser, string address = null)
-        {
-            var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-            EventHandler<LoadingStateChangedEventArgs> handler = null;
-            handler = (sender, args) =>
-            {
-                if (!args.IsLoading)
-                {
-                    browser.LoadingStateChanged -= handler;
-                    tcs.TrySetResult(true);
-                }
-            };
-
-            browser.LoadingStateChanged += handler;
-            if (!string.IsNullOrEmpty(address))
-                browser.Load(address);
-            return tcs.Task;
-        }
-        private async void Login(string server, string gamepath, string username, string password, int delay = 5000)
-        {
-            string _lpa = string.Empty;
-            string _token = string.Empty;
-
-            if (server == "US")
-                _lpa = URL.US_URL;
-            //browser.Load(URL.US_URL);
-            if (server == "DE")
-                _lpa = URL.DE_URL;
-            //browser.Load(URL.DE_URL);
-            if (server == "FR")
-                _lpa = URL.FR_URL;
-            //browser.Load(URL.FR_URL);
-            if (server == "ES")
-                _lpa = URL.ES_URL;
-                //browser.Load(URL.ES_URL);
-            await LoadPageAsync(browser, _lpa);
-            var js = browser.CanExecuteJavascriptInMainFrame;
-
-            if (js)
-            {
-                //edit-id
-                await browser.EvaluateScriptAsync($"document.getElementById('edit-id').value = '{username}';");
-                //edit-pass
-                await browser.EvaluateScriptAsync($"document.getElementById('edit-pass').value = '{password}';");
-                //account_login_submit
-                await browser.EvaluateScriptAsync("document.getElementById('account_login_submit').click();");
-
-                await Task.Delay(delay);
-                while (browser.IsLoading)
-                    await Task.Delay(delay);
-
-                _token = HttpUtility.ParseQueryString(browser.Address).Get("code");
-                if (_token == null)
-                {
-                    Console.WriteLine($"Somethings error to get Token");
-                    return;
-                }
-                var tk = MD5Token(_token);
-                Console.WriteLine($"Succesfull to get Token: {tk}");
-            }
-            if (_token != string.Empty)
-            {
-                var processStartInfo = new ProcessStartInfo
-                {
-                    FileName = Path.Combine(gamepath, "Launcher.exe"),
-                    Arguments = string.Format("-game.bin -a {0} -p Oauth2", _token),
-                    WorkingDirectory = gamepath,
-                    UseShellExecute = false
-                };
-                Process.Start(processStartInfo);
-            }
-        }
-        public string MD5Token(string input)
-        {
-            MD5 md5 = System.Security.Cryptography.MD5.Create();
-            byte[] inputBytes = System.Text.Encoding.ASCII.GetBytes(input);
-            byte[] hashBytes = md5.ComputeHash(inputBytes);
-            StringBuilder sb = new StringBuilder();
-
-            for (int i = 0; i < hashBytes.Length; i++)
-                sb.Append(hashBytes[i].ToString("X2"));
-            return sb.ToString();
         }
         private void start_btn_Click(object sender, EventArgs e)
         {
             string[] subs = AC_Manager.GetItemText(AC_Manager.SelectedItem).Split(',');
             if (subs[0] != string.Empty)
             {
-                Task.Run(() => Login(subs[2], @subs[3], subs[0], subs[1]));
+                Task.Run(() => StartBypass(subs[0], @subs[1], subs[2], subs[3]));
             }
         }
         private void save_btn_Click(object sender, EventArgs e)
@@ -135,7 +44,7 @@ namespace nAK_MC
         {
             Config._load();
             AC_Manager.Items.Clear();
-            foreach(var item in Config.mCUsers)
+            foreach (var item in Config.mCUsers)
             {
                 AC_Manager.Items.Add($"{item.Username},{item.Password},{item.Server},{item.Path}");
             }
@@ -190,12 +99,27 @@ namespace nAK_MC
         }
         private void startv2_btn_Click(object sender, EventArgs e)
         {
+            Task.Run(() => _multiLogin());
+        }
+        private async void _multiLogin(int delay = 15000)
+        {
             foreach (var item in Config.mCUsers)
             {
-                Task.Run(() => Login(item.Server, @item.Path, item.Username, item.Password));
-                Thread.Sleep(15000);
+                await Task.Run(() => StartBypass(item.Username, item.Password, item.Server, item.Path));
+                await Task.Delay(delay);
             }
         }
+        private void StartBypass(string Username, string Password, string Server, string arg)
+        {
 
+            var processStartInfo = new ProcessStartInfo
+            {
+                FileName = Path.Combine(System.Environment.CurrentDirectory, "nAK_Bypass.exe"),
+                Arguments = string.Format($@"{Username} {Password} {Server} {arg}"),
+                WorkingDirectory = System.Environment.CurrentDirectory,
+                UseShellExecute = false
+            };
+            Process.Start(processStartInfo);
+        }
     }
 }
